@@ -1,0 +1,44 @@
+{
+  "name": "@mnemosyne-plugins/mnemo-crm",
+  "displayName": "MnemoCRM",
+  "version": "0.1.0",
+  "vendor": "Mnemosyne OS",
+  "category": "Productivity",
+  "icon": "icon.svg",
+  "description": "The customer book of a small business, a freelancer or a craftsperson: clients, follow-ups that ring, and the memory of every exchange. Your files, on your machine.",
+  "descriptionI18n": {
+    "en": "The customer book of a small business, a freelancer or a craftsperson: clients, follow-ups that ring, and the memory of every exchange. Your files, on your machine.",
+    "fr": "Le carnet clients d'une petite entreprise, d'un indépendant ou d'un artisan : les clients, les relances qui sonnent, et la mémoire de chaque échange. Vos fichiers, sur votre machine.",
+    "es": "La libreta de clientes de una pequeña empresa, un autónomo o un artesano: los clientes, los recordatorios que suenan y la memoria de cada intercambio. Tus archivos, en tu equipo."
+  },
+  "keywords": [
+    "crm",
+    "clients",
+    "craft",
+    "artisan",
+    "small business",
+    "freelance"
+  ],
+  "permissions": [
+    "dialog:open",
+    "agenda:write",
+    "vault:read",
+    "vault:write",
+    "model:infer"
+  ],
+  "repository": "https://github.com/Mnemosyne-OS/MnemoCRM",
+  "updateStrategy": "git",
+  "entrypoints": {
+    "renderer": "index.html"
+  },
+  "widgets": [
+    {
+      "id": "mnemo-crm-main",
+      "icon": "📇",
+      "name": "MnemoCRM",
+      "route": "index.html",
+      "defaultWidth": 1100,
+      "defaultHeight": 760
+    }
+  ]
+}
