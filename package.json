@@ -1,6 +1,6 @@
 {
   "name": "@mnemosyne-plugins/mnemo-crm",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "MnemoCRM: the customer book of a small business, a freelancer or a craftsperson, with the memory of every exchange.",

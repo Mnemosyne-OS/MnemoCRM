@@ -161,6 +161,27 @@ export function addTimelineEntry(client: Client, kind: TimelineKind, body: strin
   return { ...client, timeline: [entry, ...client.timeline], updatedAt: now.toISOString() };
 }
 
+/**
+ * The client with a follow-up planned on `day` (the sheet's « Plan it », and
+ * an agent's planFollowUp). An empty note is an absence, never `''`.
+ */
+export function withFollowUp(client: Client, day: string, note: string | undefined, now: Date = new Date()): Client {
+  const trimmed = note?.trim();
+  return { ...client, followUp: { date: day, ...(trimmed ? { note: trimmed } : {}) }, updatedAt: now.toISOString() };
+}
+
+/**
+ * The follow-up done (the sheet's « Done », and an agent's followUpDone): the
+ * follow-up leaves the client and becomes a call in the history, carrying its
+ * note. `doneLabel` is the person's word for it ("Followed up").
+ */
+export function completeFollowUp(client: Client, doneLabel: string, now: Date = new Date()): Client {
+  const done = client.followUp?.note ? `${doneLabel}: ${client.followUp.note}` : doneLabel;
+  const next = addTimelineEntry({ ...client, followUp: undefined }, 'call', done, now);
+  delete next.followUp;
+  return next;
+}
+
 /** Newest first, whatever order the file kept them in. */
 export function sortedTimeline(client: Client): TimelineEntry[] {
   return [...client.timeline].sort((a, b) => Date.parse(b.at) - Date.parse(a.at));

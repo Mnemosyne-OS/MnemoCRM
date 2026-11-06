@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react';
 import { Briefcase, CalendarCheck, CalendarX, Check, PhoneCall, Pencil, Plus } from 'lucide-react';
 import { useI18n } from '../i18n';
-import { addTimelineEntry, contactRefused, followUpAgainstConsent, sortedTimeline } from '../model/client';
+import { addTimelineEntry, completeFollowUp, contactRefused, followUpAgainstConsent, sortedTimeline, withFollowUp } from '../model/client';
 import { formatDay, formatInstant, formatMoney, relativeDay } from '../model/format';
 import type { BookSettings, Client, Deal, TimelineKind } from '../model/types';
 import { addFollowUpToAgenda } from '../data/host';
@@ -55,11 +55,7 @@ export function ClientSheet({ client, today, saving, onSave, onEdit, deals, sett
     }
     setConfirmRefused(false);
     const trimmed = note.trim();
-    const planned: Client = {
-      ...client,
-      followUp: { date: day, ...(trimmed ? { note: trimmed } : {}) },
-      updatedAt: new Date().toISOString(),
-    };
+    const planned: Client = withFollowUp(client, day, trimmed);
     if (!(await onSave(planned))) return;
     try {
       const outcome = await addFollowUpToAgenda(day, t('followup.agendaTitle', { name: client.name }), trimmed || undefined);
@@ -76,10 +72,7 @@ export function ClientSheet({ client, today, saving, onSave, onEdit, deals, sett
   };
 
   const markDone = async () => {
-    const done = client.followUp?.note ? `${t('followup.doneEntry')}: ${client.followUp.note}` : t('followup.doneEntry');
-    const next = addTimelineEntry({ ...client, followUp: undefined }, 'call', done);
-    delete next.followUp;
-    if (await onSave(next)) setAgenda({ kind: 'idle' });
+    if (await onSave(completeFollowUp(client, t('followup.doneEntry')))) setAgenda({ kind: 'idle' });
   };
 
   const addEntry = async () => {

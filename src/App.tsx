@@ -31,6 +31,7 @@ import { MarketDialog } from './components/MarketDialog';
 import { CaptureDialog } from './components/CaptureDialog';
 import { ImportDialog } from './components/ImportDialog';
 import { PdfImportDialog } from './components/PdfImportDialog';
+import { CrmAgentActions } from './components/CrmAgentActions';
 import { LicenseDialog, type LicenseReason } from './components/LicenseDialog';
 import { mayCreate } from './model/license';
 import type { ImportTarget } from './model/importMap';
@@ -458,6 +459,7 @@ export default function App() {
       )}
       {dialog?.kind === 'deal' && (
         <DealDialog
+          key={dialog.deal?.id ?? 'new'}
           deal={dialog.deal}
           stageId={dialog.stageId}
           clientId={dialog.clientId}
@@ -535,6 +537,7 @@ export default function App() {
       )}
       {dialog?.kind === 'product' && (
         <ProductDialog
+          key={dialog.product?.id ?? 'new'}
           product={dialog.product}
           currency={book.settings.currency}
           saving={book.saving}
@@ -542,6 +545,30 @@ export default function App() {
           onClose={() => setDialog(null)}
         />
       )}
+      {/* What an agent may do here (doc 149): a child, so this App gains no hook. */}
+      <CrmAgentActions
+        book={book}
+        openClient={openClient}
+        view={{
+          setTab,
+          setQuery,
+          openDeal,
+          openProduct: (product) => setDialog({ kind: 'product', product }),
+          closeDialogOf: (kind) => setDialog((d) => (d?.kind === kind ? null : d)),
+          closeView: () => {
+            if (dialog) {
+              setDialog(null);
+              return 'dialog';
+            }
+            if (selectedId) {
+              setSelectedId(null);
+              return 'sheet';
+            }
+            return 'nothing';
+          },
+          saveDeal,
+        }}
+      />
     </div>
   );
 }

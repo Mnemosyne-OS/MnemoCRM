@@ -1,7 +1,7 @@
 {
   "name": "@mnemosyne-plugins/mnemo-crm",
   "displayName": "MnemoCRM",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "vendor": "Mnemosyne OS",
   "category": "Productivity",
   "icon": "icon.svg",
@@ -40,5 +40,542 @@
       "defaultWidth": 1100,
       "defaultHeight": 760
     }
-  ]
+  ],
+  "agentGuide": [
+    "Name a client, a deal, a stage or a product the way the person says it (« Marie Dupont », « le vase de Paul », « devis envoyé »): every action takes the words as well as an id. Refused AMBIGUOUS: the names listed are the candidates, pick one and call again; NO_CLIENT / NO_DEAL / NO_STAGE / NO_PRODUCT list the names that exist.",
+    "To look at something: openClient (a client's sheet), showDeal, showProduct, showTab (a screen), showClients (filter the list by words; no query clears it). closeView closes what is open.",
+    "A deal moves with moveDeal to one of the person's own stages; closeDeal marks it won or lost, reopenDeal undoes that. updateDeal changes its title, amount or client.",
+    "Find a client with clients, read one with client, then act (addNote, planFollowUp, followUpDone). A client who refused contact keeps follow-ups out of the agenda.",
+    "addClient may be refused LICENSE_REQUIRED: say it, never work around it."
+  ],
+  "agentActions": [
+    {
+      "id": "clients",
+      "summary": "List or search the clients: id, name, company, email, phone, tags, next follow-up day, number of exchanges.",
+      "details": "query matches every word anywhere in the client (name, company, email, phone, tags, address, notes), accents ignored. Sorted by name. Absent fields are absent, never empty.",
+      "effect": "read",
+      "params": {
+        "query": {
+          "type": "string",
+          "description": "Words to look for; empty = every client.",
+          "maxLength": 200
+        },
+        "limit": {
+          "type": "number",
+          "description": "How many clients to return (default 50).",
+          "minimum": 1,
+          "maximum": 500
+        }
+      }
+    },
+    {
+      "id": "client",
+      "summary": "One client in full: contact facts, consent to be contacted, next follow-up, the history of exchanges newest first, and their deals.",
+      "details": "consent is yes, no or unknown (never asked). history holds the 50 newest exchanges; historyNotShown counts the rest.",
+      "effect": "read",
+      "params": {
+        "clientId": {
+          "type": "string",
+          "description": "The client as the person says it (full name, first name, company) or an id from clients.",
+          "maxLength": 300
+        }
+      },
+      "required": [
+        "clientId"
+      ]
+    },
+    {
+      "id": "due",
+      "summary": "Who to follow up: the overdue follow-ups, today's, and the coming ones, clients and deal next steps together.",
+      "details": "kind client or deal with its id; today is the local day. A client's follow-up is closed with followUpDone.",
+      "effect": "read",
+      "params": {
+        "soonDays": {
+          "type": "number",
+          "description": "How many days ahead count as coming (default 7).",
+          "minimum": 0,
+          "maximum": 365
+        }
+      }
+    },
+    {
+      "id": "deals",
+      "summary": "List the deals: title, client, stage (the person's own words), amount, next step. Open deals only unless closed is true.",
+      "effect": "read",
+      "params": {
+        "clientId": {
+          "type": "string",
+          "description": "Only this client's deals: the client as the person says it, or an id from clients.",
+          "maxLength": 300
+        },
+        "closed": {
+          "type": "boolean",
+          "description": "Also list the won and lost deals."
+        }
+      }
+    },
+    {
+      "id": "addClient",
+      "summary": "Add a client to the book and show their sheet on screen.",
+      "details": "Only the name is required. Refused with LICENSE_REQUIRED when the free book is full.",
+      "effect": "write",
+      "params": {
+        "name": {
+          "type": "string",
+          "description": "The client's name, as the person writes it.",
+          "maxLength": 300
+        },
+        "kind": {
+          "type": "string",
+          "description": "A person or a company.",
+          "enum": [
+            "person",
+            "company"
+          ]
+        },
+        "company": {
+          "type": "string",
+          "description": "The company a person works at (kept for a person only).",
+          "maxLength": 300
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address.",
+          "maxLength": 300
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number.",
+          "maxLength": 300
+        },
+        "address": {
+          "type": "string",
+          "description": "Postal address.",
+          "maxLength": 300
+        },
+        "source": {
+          "type": "string",
+          "description": "Where this client came from (\"Christmas market Lyon 2025\", \"Instagram\").",
+          "maxLength": 300
+        },
+        "tags": {
+          "type": "list",
+          "description": "Tags, each a short word. Replaces the client's tags.",
+          "maxItems": 30
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    {
+      "id": "updateClient",
+      "summary": "Change a client's contact facts, tags or consent, and show their sheet on screen.",
+      "details": "Only the fields passed change; a field cannot be emptied from here. consent records the client's own answer to being contacted again: yes, no, or unknown.",
+      "effect": "write",
+      "params": {
+        "clientId": {
+          "type": "string",
+          "description": "The client as the person says it (full name, first name, company) or an id from clients.",
+          "maxLength": 300
+        },
+        "name": {
+          "type": "string",
+          "description": "The client's name, as the person writes it.",
+          "maxLength": 300
+        },
+        "kind": {
+          "type": "string",
+          "description": "A person or a company.",
+          "enum": [
+            "person",
+            "company"
+          ]
+        },
+        "company": {
+          "type": "string",
+          "description": "The company a person works at (kept for a person only).",
+          "maxLength": 300
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address.",
+          "maxLength": 300
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number.",
+          "maxLength": 300
+        },
+        "address": {
+          "type": "string",
+          "description": "Postal address.",
+          "maxLength": 300
+        },
+        "source": {
+          "type": "string",
+          "description": "Where this client came from (\"Christmas market Lyon 2025\", \"Instagram\").",
+          "maxLength": 300
+        },
+        "tags": {
+          "type": "list",
+          "description": "Tags, each a short word. Replaces the client's tags.",
+          "maxItems": 30
+        },
+        "consent": {
+          "type": "string",
+          "description": "The client's answer to being contacted again.",
+          "enum": [
+            "yes",
+            "no",
+            "unknown"
+          ]
+        }
+      },
+      "required": [
+        "clientId"
+      ]
+    },
+    {
+      "id": "addNote",
+      "summary": "Add an exchange to a client's history (a note, a call, a meeting or a sale) and show their sheet on screen.",
+      "effect": "write",
+      "params": {
+        "clientId": {
+          "type": "string",
+          "description": "The client as the person says it (full name, first name, company) or an id from clients.",
+          "maxLength": 300
+        },
+        "text": {
+          "type": "string",
+          "description": "What was said or done.",
+          "maxLength": 5000
+        },
+        "kind": {
+          "type": "string",
+          "description": "The kind of exchange (default note).",
+          "enum": [
+            "note",
+            "call",
+            "meeting",
+            "sale"
+          ]
+        },
+        "source": {
+          "type": "string",
+          "description": "Where it comes from when the person did not type it (a file, a mail).",
+          "maxLength": 1000
+        }
+      },
+      "required": [
+        "clientId",
+        "text"
+      ]
+    },
+    {
+      "id": "planFollowUp",
+      "summary": "Plan a client's next follow-up on a day, put it in the person's agenda (rings at 9:00), and show their sheet.",
+      "details": "Replaces the client's follow-up. A client who said no to being contacted again keeps it in the book but never in the agenda (CONTACT_REFUSED). inAgenda false with a reason means saved in the book only. The first agenda write may open a permission window for the person.",
+      "effect": "write",
+      "params": {
+        "clientId": {
+          "type": "string",
+          "description": "The client as the person says it (full name, first name, company) or an id from clients.",
+          "maxLength": 300
+        },
+        "date": {
+          "type": "string",
+          "description": "The local day, YYYY-MM-DD.",
+          "maxLength": 10
+        },
+        "note": {
+          "type": "string",
+          "description": "What the follow-up is about.",
+          "maxLength": 300
+        }
+      },
+      "required": [
+        "clientId",
+        "date"
+      ]
+    },
+    {
+      "id": "followUpDone",
+      "summary": "Mark a client's follow-up done: it leaves the client and becomes a call in the history, as the sheet's Done button does.",
+      "effect": "write",
+      "params": {
+        "clientId": {
+          "type": "string",
+          "description": "The client as the person says it (full name, first name, company) or an id from clients.",
+          "maxLength": 300
+        }
+      },
+      "required": [
+        "clientId"
+      ]
+    },
+    {
+      "id": "openClient",
+      "summary": "Show a client's sheet on the person's screen.",
+      "effect": "write",
+      "params": {
+        "clientId": {
+          "type": "string",
+          "description": "The client as the person says it (full name, first name, company) or an id from clients.",
+          "maxLength": 300
+        }
+      },
+      "required": [
+        "clientId"
+      ]
+    },
+    {
+      "id": "showTab",
+      "summary": "Show a screen of MnemoCRM: today, clients, deals, catalog, sales, analytics or settings.",
+      "effect": "write",
+      "params": {
+        "tab": {
+          "type": "string",
+          "description": "The screen.",
+          "enum": [
+            "today",
+            "clients",
+            "deals",
+            "catalog",
+            "sales",
+            "analytics",
+            "settings"
+          ]
+        }
+      },
+      "required": [
+        "tab"
+      ]
+    },
+    {
+      "id": "showClients",
+      "summary": "Show the client list filtered by words, as typed in the search box; no query clears the filter.",
+      "details": "The words match anywhere in the client (name, company, email, phone, tags, address, notes), accents ignored. Answers how many clients match.",
+      "effect": "write",
+      "params": {
+        "query": {
+          "type": "string",
+          "description": "Words to filter on; absent = every client.",
+          "maxLength": 200
+        }
+      }
+    },
+    {
+      "id": "closeView",
+      "summary": "Close what is open on screen: the open dialog, else the client's sheet. Says what it closed (nothing when nothing was open).",
+      "effect": "write",
+      "params": {}
+    },
+    {
+      "id": "showDeal",
+      "summary": "Open a deal on the person's screen (open or closed).",
+      "effect": "write",
+      "params": {
+        "deal": {
+          "type": "string",
+          "description": "The deal as the person says it (its title, or its client's name) or an id from deals.",
+          "maxLength": 300
+        }
+      },
+      "required": [
+        "deal"
+      ]
+    },
+    {
+      "id": "moveDeal",
+      "summary": "Move an open deal to one of the person's stages, as dragging its card on the board does, and show the board.",
+      "details": "stage is the person's own word for it (the board's column titles), or a stage id. A closed deal is refused DEAL_CLOSED: reopenDeal first. Already there answers changed false.",
+      "effect": "write",
+      "params": {
+        "deal": {
+          "type": "string",
+          "description": "The deal as the person says it (its title, or its client's name) or an id from deals.",
+          "maxLength": 300
+        },
+        "stage": {
+          "type": "string",
+          "description": "The stage as the person names it, e.g. \"Devis envoyé\".",
+          "maxLength": 200
+        }
+      },
+      "required": [
+        "deal",
+        "stage"
+      ]
+    },
+    {
+      "id": "closeDeal",
+      "summary": "Mark an open deal won or lost, as the deal's Won and Lost buttons do, and show the board.",
+      "effect": "write",
+      "params": {
+        "deal": {
+          "type": "string",
+          "description": "The deal as the person says it (its title, or its client's name) or an id from deals.",
+          "maxLength": 300
+        },
+        "outcome": {
+          "type": "string",
+          "description": "won or lost.",
+          "enum": [
+            "won",
+            "lost"
+          ]
+        }
+      },
+      "required": [
+        "deal",
+        "outcome"
+      ]
+    },
+    {
+      "id": "reopenDeal",
+      "summary": "Reopen a won or lost deal: it goes back to its stage on the board.",
+      "effect": "write",
+      "params": {
+        "deal": {
+          "type": "string",
+          "description": "The deal as the person says it (its title, or its client's name) or an id from deals.",
+          "maxLength": 300
+        }
+      },
+      "required": [
+        "deal"
+      ]
+    },
+    {
+      "id": "updateDeal",
+      "summary": "Change a deal's title, amount or client, or add a line to its history, and show the board.",
+      "details": "Only the fields passed change; the amount is in the book's currency. Nothing passed is refused NOTHING_TO_CHANGE.",
+      "effect": "write",
+      "params": {
+        "deal": {
+          "type": "string",
+          "description": "The deal as the person says it (its title, or its client's name) or an id from deals.",
+          "maxLength": 300
+        },
+        "title": {
+          "type": "string",
+          "description": "The new title.",
+          "maxLength": 300
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount, in the book's currency.",
+          "minimum": 0,
+          "maximum": 1000000000
+        },
+        "client": {
+          "type": "string",
+          "description": "The client the deal is for, as the person says it, or an id.",
+          "maxLength": 300
+        },
+        "note": {
+          "type": "string",
+          "description": "A line for the deal's history.",
+          "maxLength": 2000
+        }
+      },
+      "required": [
+        "deal"
+      ]
+    },
+    {
+      "id": "showProduct",
+      "summary": "Open a product of the catalogue on the person's screen.",
+      "effect": "write",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "The product as the person says it (its name) or an id.",
+          "maxLength": 300
+        }
+      },
+      "required": [
+        "product"
+      ]
+    },
+    {
+      "id": "setProductStatus",
+      "summary": "Mark a unique piece available, reserved or sold, as the catalogue's buttons do, and show the catalogue.",
+      "details": "A series has a stock, not a status: refused NOT_UNIQUE (use adjustStock). This does not record a sale in the journal.",
+      "effect": "write",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "The product as the person says it (its name) or an id.",
+          "maxLength": 300
+        },
+        "status": {
+          "type": "string",
+          "description": "The piece's state.",
+          "enum": [
+            "available",
+            "reserved",
+            "sold"
+          ]
+        }
+      },
+      "required": [
+        "product",
+        "status"
+      ]
+    },
+    {
+      "id": "adjustStock",
+      "summary": "Add to or take from a series' stock, as the catalogue's + and - do (never below zero), and show the catalogue.",
+      "details": "A product with no stock count is refused STOCK_NOT_TRACKED.",
+      "effect": "write",
+      "params": {
+        "product": {
+          "type": "string",
+          "description": "The product as the person says it (its name) or an id.",
+          "maxLength": 300
+        },
+        "delta": {
+          "type": "number",
+          "description": "How many to add (+5) or take away (-1).",
+          "minimum": -10000,
+          "maximum": 10000
+        }
+      },
+      "required": [
+        "product",
+        "delta"
+      ]
+    }
+  ],
+  "voiceCommands": {
+    "fr": [
+      "montre-moi la fiche de Marie Dupont",
+      "ajoute une note à Paul Martin : il veut un devis",
+      "passe l’affaire du vase bleu en devis envoyé",
+      "marque le bol à thé vendu",
+      "ajoute 5 au stock des tasses bleues",
+      "montre le catalogue",
+      "ferme la fiche"
+    ],
+    "en": [
+      "show me Marie Dupont’s card",
+      "add a note to Paul Martin: he wants a quote",
+      "move the blue vase deal to quote sent",
+      "mark the tea bowl as sold",
+      "add 5 to the blue cups stock",
+      "show the catalogue",
+      "close the card"
+    ],
+    "es": [
+      "muéstrame la ficha de Marie Dupont",
+      "añade una nota a Paul Martin: quiere un presupuesto",
+      "pasa el negocio del jarrón azul a presupuesto enviado",
+      "marca el cuenco de té como vendido",
+      "añade 5 al stock de las tazas azules",
+      "muestra el catálogo",
+      "cierra la ficha"
+    ]
+  }
 }
